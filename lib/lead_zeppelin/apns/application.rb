@@ -24,12 +24,12 @@ module LeadZeppelin
                    timeout: (opts[:connection_pool_timeout] || CONNECTION_POOL_TIMEOUT)}
 
         @gateway_connection_pool = ConnectionPool.new(cp_args) do
-          Connection::Gateway.new @ssl_context, opts[:connection_opts] || {}
+          Gateway.new @ssl_context, opts[:connection_opts] || {}
         end
       end
 
       def message(device_id, message)
-        @gateway_connection_pool.with_connection { |conn| conn.write Notification.new(device_id, message).packaged_notification }
+        @gateway_connection_pool.with_connection { |conn| conn.write Notification.new(device_id, message).packaged_enhanced_notification }
       end
     end
   end
