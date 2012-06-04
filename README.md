@@ -1,4 +1,4 @@
-# LeadBalloon
+# LeadZeppelin
 
 Fast, threaded client for the Apple Push Notification Service.
 
@@ -6,7 +6,7 @@ Fast, threaded client for the Apple Push Notification Service.
 
 Add this line to your application's Gemfile:
 
-    gem 'lead_balloon'
+    gem 'lead_zeppelin'
 
 And then execute:
 
@@ -14,7 +14,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install lead_balloon
+    $ gem install lead_zeppelin
 
 ## Usage
 

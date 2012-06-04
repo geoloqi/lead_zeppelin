@@ -17,7 +17,8 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'celluloid'
   gem.add_dependency 'multi_json'
   gem.add_dependency 'connection_pool'
+#   gem.add_dependency 'jruby-openssl'
 
-  gem.add_development_dependency 'debugger'
-  gem.add_development_dependency 'pry'
+#  gem.add_development_dependency 'debugger'
+#  gem.add_development_dependency 'pry'
 end

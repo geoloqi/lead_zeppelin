@@ -1,7 +1,7 @@
 module LeadZeppelin
   module APNS
     class Application
-      CONNECTION_POOL_SIZE = 2
+      CONNECTION_POOL_SIZE = 30
       CONNECTION_POOL_TIMEOUT = 5
 
       def initialize(name, opts={})
@@ -29,7 +29,13 @@ module LeadZeppelin
       end
 
       def message(device_id, message)
-        @gateway_connection_pool.with_connection { |conn| conn.write Notification.new(device_id, message).packaged_enhanced_notification }
+        # This probably needs a thread pool.
+        Thread.new {
+          @gateway_connection_pool.with_connection do |gateway|
+            gateway.write Notification.new(device_id, message).packaged_enhanced_notification
+          end
+        }
+        true
       end
     end
   end
