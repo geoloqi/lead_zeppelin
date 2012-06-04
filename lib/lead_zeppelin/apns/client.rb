@@ -1,23 +1,30 @@
 module LeadZeppelin
   module APNS
     class Client
+      CLIENT_THREADS = 10
       DEFAULT_POLL_FREQUENCY = 1
       
       def initialize(opts={}, &configure)
         @semaphore = Mutex.new
         @opts = opts
         self.instance_eval &configure
+
+        # FIXME
+        @thread_count = Queue.new
+        (opts[:client_threads] || CLIENT_THREADS).times {|t| @thread_count << t}
       end
 
       attr_accessor :applications
 
-      def poll(_frequency=DEFAULT_POLL_FREQUENCY, &block)
+      def poll(frequency=DEFAULT_POLL_FREQUENCY, opts={}, &block)
         @cycle_thread = Thread.new {
           loop do
             self.instance_eval &block
-            sleep _frequency
+            sleep frequency
           end
         }
+        
+        @cycle_thread.join if opts[:join_parent_thread] == true
       end
 
       def hold_open_poll
@@ -38,7 +45,10 @@ module LeadZeppelin
       end
 
       def message(app_name, device_id, message)
+        # FIXME
+        t = @thread_count
         @applications[app_name].message device_id, message
+        @thread_count << t
       end
     end
   end

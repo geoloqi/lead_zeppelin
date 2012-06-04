@@ -16,7 +16,7 @@ module LeadZeppelin
         socket = TCPSocket.new((@opts[:apns_host] || HOST), (@opts[:apns_port] || PORT))
         ssl_socket = OpenSSL::SSL::SSLSocket.new socket, @ssl_context
         ssl_socket.connect
-        
+
         @semaphore.synchronize do
           @socket = socket
           @ssl_socket = ssl_socket
@@ -33,11 +33,12 @@ module LeadZeppelin
         @socket.close
       end
 
-      def write(payload)
+      def write(notification)
         begin
-          @ssl_socket.write payload
+          @ssl_socket.write notification.payload
+
           error = @ssl_socket.read_nonblock 6
-          puts "ERROR: #{error} TODO THROW THIS INTO CALLBACK"
+          puts "ERROR: #{error.inspect}"
           reconnect
         rescue IO::WaitReadable
         end
