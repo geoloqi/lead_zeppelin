@@ -20,7 +20,7 @@ module LeadZeppelin
 
       def payload
         j = message_json
-        # [1, 1, Time.now.to_i+5000, 0, 32, packaged_token, 0, j.bytesize, j].pack("cNNcca*cca*")
+        puts "TODO FIX PAYLOAD"
         [1, Time.now.to_i, Time.now.to_i+5000, 0, 32, packaged_token, 0, j.bytesize, j].pack("cNNcca*cca*")
       end
 
