@@ -31,11 +31,11 @@ module LeadZeppelin
         end
       end
 
-      def message(device_id, message)
+      def message(device_id, message, opts={})
         connect if @gateway_connection_pool.nil?
 
         @gateway_connection_pool.with_connection do |gateway|
-          gateway.write Notification.new(device_id, message)
+          gateway.write Notification.new(device_id, message, opts)
         end
 
         true

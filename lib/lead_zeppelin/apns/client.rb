@@ -44,10 +44,10 @@ module LeadZeppelin
         end
       end
 
-      def message(app_name, device_id, message)
+      def message(app_name, device_id, message, opts={})
         # FIXME
         t = @thread_count
-        @applications[app_name].message device_id, message
+        @applications[app_name].message device_id, message, opts
         @thread_count << t
       end
     end

@@ -20,5 +20,5 @@ Gem::Specification.new do |gem|
 
 #  gem.add_dependency 'jruby-openssl'
 #  gem.add_development_dependency 'debugger'
-  gem.add_development_dependency 'pry'
+#  gem.add_development_dependency 'pry'
 end

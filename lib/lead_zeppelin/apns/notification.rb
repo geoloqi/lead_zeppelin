@@ -3,8 +3,9 @@ module LeadZeppelin
     class Notification
       attr_accessor :device_token, :alert, :badge, :sound, :other
 
-      def initialize(device_token, message)
+      def initialize(device_token, message, opts={})
         @device_token = device_token
+        @opts = opts
 
         if message.is_a?(Hash)
           @alert = message[:alert]
@@ -14,14 +15,14 @@ module LeadZeppelin
         elsif message.is_a?(String)
           @alert = message
         else
-          raise ArgumentError, "Notification needs to have either a hash or string"
+          raise ArgumentError, "notification message must be hash or string"
         end
       end
 
       def payload
         j = message_json
-        puts "TODO FIX PAYLOAD"
-        [1, Time.now.to_i, Time.now.to_i+5000, 0, 32, packaged_token, 0, j.bytesize, j].pack("cNNcca*cca*")
+        expiry = @opts[:expiry].nil? ? 1 : @opts[:expiry].to_i
+        [1, (@opts[:identifier] || 0), expiry, 0, 32, packaged_token, 0, j.bytesize, j].pack("cNNcca*cca*")
       end
 
       def packaged_token
