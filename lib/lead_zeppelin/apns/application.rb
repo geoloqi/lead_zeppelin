@@ -27,7 +27,7 @@ module LeadZeppelin
                    timeout: (@opts[:connection_pool_timeout] || CONNECTION_POOL_TIMEOUT)}
 
         @gateway_connection_pool = ConnectionPool.new(cp_args) do
-          Gateway.new @ssl_context, @opts[:gateway_opts] || {}
+          Gateway.new @ssl_context, (@opts[:gateway_opts] || {}).merge(error_block: @opts[:error_block])
         end
       end
 

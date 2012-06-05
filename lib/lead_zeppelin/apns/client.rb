@@ -19,6 +19,10 @@ module LeadZeppelin
 
       attr_accessor :applications
 
+      def on_error(&block)
+        @error_block = block
+      end
+
       def poll(frequency=DEFAULT_POLL_FREQUENCY, opts={}, &block)
         Logger.info 'creating polling thread'
         Logger.thread 'p'
@@ -44,7 +48,7 @@ module LeadZeppelin
         Logger.thread 'a'
         @semaphore.synchronize do
           @applications ||= {}
-          @applications[name] = Application.new name, opts
+          @applications[name] = Application.new name, opts.merge(error_block: @error_block)
         end
       end
 

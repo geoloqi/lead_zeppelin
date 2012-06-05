@@ -51,16 +51,32 @@ module LeadZeppelin
         @ssl_socket.close
       end
 
+      def process_error(notification=nil)
+        begin
+          error_response = @ssl_socket.read_nonblock 6
+          error = ErrorResponse.new error_response, notification
+
+          Logger.warn "error: #{error.code}, #{error.identifier}, #{error.message}"
+          Logger.thread 'e'
+
+          reconnect
+
+          if @opts[:error_block].nil? || !@opts[:error_block].respond_to?(:call)
+            Logger.error "You have not implemented an on_error block. This could lead to your account being banned from APNS. See the APNS docs"
+          else
+            @opts[:error_block].call(error)
+          end
+
+        rescue IO::WaitReadable
+          Logger.thread 'g'
+        end
+      end
+
       def write(notification)
         Logger.thread 'w'
-        
+
         begin
-          # The APNS protocol is designed in such a way that you need to wait for the response to see if there was an error, 
-          # but if there was no error, no acknowledgement is sent. If there is an error, the connection is also dropped, which causes 
-          # messages to mysteriously fail sending without reporting (@ssl_socket.write length is the right size, closed? says false, and
-          # exceptions aren't thrown). Since we (currently) need to "sleep" a bit to check for these errors anyways, I threw it in an 
-          # IO.select so that we at least don't have to wait when an error response arrives. This is not ideal, but I have not found a
-          # better way to catch this. Suggestions very welcome here.
+          process_error
 
           @ssl_socket.write notification.payload
 
@@ -73,12 +89,8 @@ module LeadZeppelin
           end
 
           if !read.nil? && !read.first.nil?
-            error_response = @ssl_socket.read_nonblock 6
-            error = ErrorResponse.new error_response
-
-            Logger.warn "error: #{error.inspect}"
-            Logger.thread 'e'
-            reconnect
+            process_error(notification)
+            return false
           end
 
         rescue Errno::EPIPE => e
@@ -87,6 +99,8 @@ module LeadZeppelin
           reconnect
           retry
         end
+        
+        true
       end
 
     end

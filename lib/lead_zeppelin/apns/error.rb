@@ -14,11 +14,12 @@ module LeadZeppelin
         255 => 'None (unknown)'
       }
 
-      attr_reader :code, :identifier
+      attr_reader :code, :identifier, :message, :notification
 
-      def initialize(packet)
-        command, @code, @identifier = packet.unpack 'ccN'
+      def initialize(packet, notification=nil)
+        command, @code, @identifier = packet.unpack 'ccA4'
         @message = CODES[@code]
+        @notification = notification
       end
     end
   end
