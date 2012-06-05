@@ -4,6 +4,7 @@ module LeadZeppelin
       HOST = 'gateway.push.apple.com'
       PORT = 2195
       DEFAULT_TIMEOUT = 10
+      DEFAULT_SELECT_WAIT = 0.5
 
       def initialize(ssl_context, opts={})
         Logger.thread 'g'
@@ -52,19 +53,36 @@ module LeadZeppelin
 
       def write(notification)
         Logger.thread 'w'
+        
         begin
-          @ssl_socket.write notification.payload
-#          sleep 2
-          error_response = @ssl_socket.read_nonblock 6
+          # The APNS protocol is designed in such a way that you need to wait for the response to see if there was an error, 
+          # but if there was no error, no acknowledgement is sent. If there is an error, the connection is also dropped, which causes 
+          # messages to mysteriously fail sending without reporting (@ssl_socket.write length is the right size, closed? says false, and
+          # exceptions aren't thrown). Since we (currently) need to "sleep" a bit to check for these errors anyways, I threw it in an 
+          # IO.select so that we at least don't have to wait when an error response arrives. This is not ideal, but I have not found a
+          # better way to catch this. Suggestions very welcome here.
 
-          Logger.warn "error response: #{error_response.inspect}"
-          Logger.thread 'e'
-          error = ErrorResponse.new error_response
-          reconnect
-        rescue IO::WaitReadable
-          Logger.thread 'x'
+          @ssl_socket.write notification.payload
+
+          read, write, error = IO.select [@ssl_socket], [], [@ssl_socket], (@opts[:select_wait] || DEFAULT_SELECT_WAIT)
+
+          if !error.nil? && !error.first.nil?
+            Logger.error "IO.select has reported an unexpected error. Reconnecting, sleeping a bit and retrying"
+            sleep 1
+            reconnect
+          end
+
+          if !read.nil? && !read.first.nil?
+            error_response = @ssl_socket.read_nonblock 6
+            error = ErrorResponse.new error_response
+
+            Logger.warn "error: #{error.inspect}"
+            Logger.thread 'e'
+            reconnect
+          end
+
         rescue Errno::EPIPE => e
-          Logger.warn 'gateway connection returned broken pipe, attempting reconnect and retrying...'
+          Logger.warn 'gateway connection returned broken pipe, attempting reconnect and retrying'
           Logger.thread 'f'
           reconnect
           retry

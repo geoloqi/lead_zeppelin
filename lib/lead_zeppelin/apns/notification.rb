@@ -1,11 +1,16 @@
 module LeadZeppelin
   module APNS
     class Notification
-      attr_accessor :device_token, :alert, :badge, :sound, :other
+      attr_reader :device_token, :alert, :badge, :sound, :other, :identifier, :expiry
 
       def initialize(device_token, message, opts={})
         @device_token = device_token
         @opts = opts
+        
+        @identifier = @opts[:identifier] || SecureRandom.random_bytes(4)
+        @identifier = @identifier.to_s
+
+        @expiry = @opts[:expiry].nil? ? 1 : @opts[:expiry].to_i
 
         if message.is_a?(Hash)
           @alert = message[:alert]
@@ -21,8 +26,7 @@ module LeadZeppelin
 
       def payload
         j = message_json
-        expiry = @opts[:expiry].nil? ? 1 : @opts[:expiry].to_i
-        [1, (@opts[:identifier] || 0), expiry, 0, 32, packaged_token, 0, j.bytesize, j].pack("cNNcca*cca*")
+        [1, @identifier, @expiry, 0, 32, packaged_token, 0, j.bytesize, j].pack("cA4Ncca*cca*")
       end
 
       def packaged_token
