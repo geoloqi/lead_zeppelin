@@ -3,10 +3,13 @@ module LeadZeppelin
     class Client
       CLIENT_THREADS = 10
       DEFAULT_POLL_FREQUENCY = 1
-      
+
       def initialize(opts={}, &configure)
+        Logger.info "instantiating client with options: #{opts.inspect}"
+        Logger.thread 'c'
         @semaphore = Mutex.new
         @opts = opts
+
         self.instance_eval &configure
 
         # FIXME
@@ -17,21 +20,28 @@ module LeadZeppelin
       attr_accessor :applications
 
       def poll(frequency=DEFAULT_POLL_FREQUENCY, opts={}, &block)
-        @cycle_thread = Thread.new {
+        Logger.info 'creating polling thread'
+        Logger.thread 'p'
+        @polling_thread = Thread.new {
           loop do
             self.instance_eval &block
             sleep frequency
           end
+
+          Logger.thread 'polling thread running'
         }
-        
-        @cycle_thread.join if opts[:join_parent_thread] == true
+
+        @polling_thread.join if opts[:join_parent_thread] == true
       end
 
       def hold_open_poll
-        @cycle_thread.join
+        Logger.info 'attaching current thread to polling thread'
+        @polling_thread.join
       end
 
       def add_application(name, opts={})
+        Logger.info "adding application \"#{name}\""
+        Logger.thread 'a'
         @semaphore.synchronize do
           @applications ||= {}
           @applications[name] = Application.new name, opts
@@ -39,12 +49,18 @@ module LeadZeppelin
       end
 
       def remove_application(name)
+        Logger.info "removing application \"#{name}\""
+        Logger.thread 'r'
         @semaphore.synchronize do
-          @applications.delete name
+          deleted = @applications.delete name
+          Logger.warn "removing application \"#{name}\" failed! Name may be invalid." if deleted.nil?
         end
       end
 
       def message(app_name, device_id, message, opts={})
+        Logger.debug "message: \"#{app_name}\", \"#{device_id}\", \"#{message}\""
+        Logger.thread 'm'
+
         # FIXME
         t = @thread_count
         @applications[app_name].message device_id, message, opts

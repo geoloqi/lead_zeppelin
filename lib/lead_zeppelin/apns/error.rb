@@ -1,6 +1,6 @@
 module LeadZeppelin
   module APNS
-    class Error
+    class ErrorResponse
       CODES = {
         0   => 'No errors encountered',
         1   => 'Processing error',
