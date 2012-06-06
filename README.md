@@ -18,7 +18,40 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Require the gem, set threads to throw exceptions (optional, but recommended for now):
+
+    require 'lead_zeppelin'
+    Thread.abort_on_exception = true
+    
+Instantiate a new client and configure it by adding the block of code to handle error responses, and . Provide client.on\_error _before adding applications_.
+
+    @client = LeadZeppelin::APNS::Client.new do |client|
+      client.on_error do |error_response|
+        puts "Apple sent back an error response: #{error_response.inspect}"
+      end
+      
+      # You can provide .p12 files too! p12: File.read('./yourapp.p12')
+      client.add_application :your_app_identifier, pem: File.read('./yourapp.pem')
+    end
+
+# Add a poller to read messages via a method of your choosing:
+
+    # Poll every second, join parent (main) thread so it doesn't close
+    
+    @client.poll(1, join_parent_thread: true) do |client|
+      client.message :demoapp, 'f80d44bc73b4a856d9bcd63c2285e5190f8a7dcd8af34cfdf1f4a23cfd66423d', "testing!"
+    end
+
+# Logging
+
+LeadZeppelin#logger takes a Logger class:
+
+    require 'logger'
+    LeadZeppelin.logger = Logger.new(STDERR)
+
+To watch the thread flow, pass an IO to LeadZeppelin#thread_logger (but not a Logger):
+
+    LeadZeppelin.thread_logger = STDERR
 
 ## Contributing
 

@@ -4,9 +4,9 @@ require File.expand_path('../lib/lead_zeppelin/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors       = ["Kyle Drake"]
   gem.email         = ["kyledrake@gmail.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
-  gem.homepage      = ""
+  gem.description   = %q{Thread-safe, multi-application APNS client}
+  gem.summary       = %q{Thread-safe, multi-application APNS client that makes it easier to develop notification software for the APNS service.}
+  gem.homepage      = "https://github.com/geoloqi/lead_zeppelin"
 
   gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   gem.files         = `git ls-files`.split("\n")
@@ -17,8 +17,4 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'multi_json'
   gem.add_dependency 'json'
   gem.add_dependency 'connection_pool'
-
-#  gem.add_dependency 'jruby-openssl'
-#  gem.add_development_dependency 'debugger'
-  gem.add_development_dependency 'pry'
 end
