@@ -56,7 +56,7 @@ module LeadZeppelin
           error_response = @ssl_socket.read_nonblock 6
           error = ErrorResponse.new error_response, notification
 
-          Logger.warn "error: #{error.code}, #{error.identifier}, #{error.message}"
+          Logger.warn "error: #{error.code}, #{error.identifier.to_s}, #{error.message}"
           Logger.thread 'e'
 
           reconnect

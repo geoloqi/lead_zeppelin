@@ -24,8 +24,7 @@ module LeadZeppelin
       end
 
       def payload
-        j = message_json
-        [1, @identifier, @expiry, 0, 32, packaged_token, 0, j.bytesize, j].pack("cA4Ncca*cca*")
+        [1, @identifier, @expiry, 0, 32, packaged_token, 0, message_json.bytesize, message_json].pack("cA4Ncca*cca*")
       end
 
       def packaged_token
