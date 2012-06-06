@@ -60,3 +60,12 @@ To watch the thread flow, pass an IO to LeadZeppelin#thread_logger (but not a Lo
 3. Commit your changes (`git commit -am 'Added some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+## TODO
+
+* *TESTING*
+* Way to handle errors asynchronously using a pool
+* Performance and concurrency speedups
+* Edge cases
+* Documentation (code level and regular)
+* Length checking for payload, possibly an auto truncating feature
