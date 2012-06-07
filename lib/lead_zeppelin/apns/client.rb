@@ -9,6 +9,7 @@ module LeadZeppelin
         Logger.thread 'c'
         @semaphore = Mutex.new
         @opts = opts
+        @applications = {}
 
         self.instance_eval &configure if configure
 
