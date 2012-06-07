@@ -12,7 +12,9 @@ module LeadZeppelin
 
         @expiry = @opts[:expiry].nil? ? 1 : @opts[:expiry].to_i
 
-        if message.is_a?(Hash)
+        if opts[:raw] == true
+          @message = message
+        elsif message.is_a?(Hash)
           other = message.delete(:other)
           @message = {aps: message}
           @message.merge!(other) if other
@@ -32,6 +34,7 @@ module LeadZeppelin
       end
 
       def message_json
+        return @message if @opts[:raw] == true
         @message_json ||= MultiJson.encode @message
       end
     end

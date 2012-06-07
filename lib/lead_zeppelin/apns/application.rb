@@ -4,6 +4,8 @@ module LeadZeppelin
       CONNECTION_POOL_SIZE = 5
       CONNECTION_POOL_TIMEOUT = 5
 
+      attr_reader :name
+
       def initialize(name, opts={})
         @name = name
         @opts = opts
