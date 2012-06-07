@@ -34,13 +34,19 @@ Instantiate a new client and configure it by adding the block of code to handle 
       c.add_application :your_app_identifier, pem: File.read('./yourapp.pem')
     end
 
-# Add a poller to read messages via a method of your choosing:
+## Polling
+
+Add a poller to read messages via a method of your choosing:
 
     # Poll every second, join parent (main) thread so it doesn't close
     
     client.poll(1, join_parent_thread: true) do |c|
-      c.message :demoapp, 'f80d44bc73b4a856d9bcd63c2285e5190f8a7dcd8af34cfdf1f4a23cfd66423d', "testing!"
+      c.message :demoapp, 'YOUR_DEVICE_TOKEN_GOES_HERE', "testing!"
     end
+
+If you already have the generated JSON payload, you can inform the message sender to not encode to JSON:
+
+    c.message :demoapp, 'YOUR_DEVICE_TOKEN_GOES_HERE', '{"aps":{"alert":"Now Playing: Dazed and Confused"}}', raw: true
 
 # Logging
 
@@ -69,3 +75,4 @@ To watch the thread flow, pass an IO to LeadZeppelin#thread_logger (but not a Lo
 * Edge cases
 * Documentation (code level and regular)
 * Length checking for payload, possibly an auto truncating feature
+* Research Celluloid and Celluloid::IO integration (waiting on [this ticket](https://github.com/celluloid/celluloid-io/pull/11))
