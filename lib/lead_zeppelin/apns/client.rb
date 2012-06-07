@@ -10,7 +10,7 @@ module LeadZeppelin
         @semaphore = Mutex.new
         @opts = opts
 
-        self.instance_eval &configure
+        self.instance_eval &configure if configure
 
         # FIXME
         @thread_count = Queue.new

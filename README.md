@@ -4,6 +4,8 @@ Fast, threaded client for the Apple Push Notification Service.
 
 ## Installation
 
+Lead Zeppelin requires Ruby 1.9. It is tested on MRI. Because it uses threads, it probably runs better on JRuby and Rubinius, but has not yet been tested (feedback welcome).
+
 Add this line to your application's Gemfile:
 
     gem 'lead_zeppelin'
@@ -70,6 +72,7 @@ To watch the thread flow, pass an IO to LeadZeppelin#thread_logger (but not a Lo
 ## TODO
 
 * *TESTING*
+* Gateway and sandbox mode
 * Way to handle errors asynchronously using a pool
 * Performance and concurrency speedups
 * Edge cases
