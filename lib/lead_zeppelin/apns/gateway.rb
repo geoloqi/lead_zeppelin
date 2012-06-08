@@ -21,8 +21,11 @@ module LeadZeppelin
           timeout(@opts[:timeout] || DEFAULT_TIMEOUT) do
             socket = TCPSocket.new((@opts[:apns_host] || HOST), (@opts[:apns_port] || PORT))
             ssl_socket = OpenSSL::SSL::SSLSocket.new socket, @ssl_context
+            
             ssl_socket.sync_close = true # when ssl_socket is closed, make sure the regular socket closes too.
             ssl_socket.connect
+
+            # FIXME TODO CHECK FOR EOFError HERE instead of in process_error
 
             @semaphore.synchronize do
               @socket = socket
@@ -67,7 +70,13 @@ module LeadZeppelin
             @opts[:error_block].call(error)
           end
 
+        rescue EOFError
+          # FIXME put in a certificate error pre-check and perhaps an error block for handling this.
+          # A better solution is the remove the application altogether from the client..
+          Logger.error "Invalid certificate for #{@opts[:application_name]}, reconnecting for now.."
+          reconnect
         rescue IO::WaitReadable
+          # No data to read, continue
           Logger.thread 'g'
         end
       end
