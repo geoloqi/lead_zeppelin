@@ -80,10 +80,14 @@ module LeadZeppelin
         Logger.debug "message: \"#{app_name}\", \"#{device_id}\", \"#{message}\""
         Logger.thread 'm'
 
-        # FIXME
-        t = @thread_count
-        @applications[app_name].message device_id, message, opts
-        @thread_count << t
+        if @applications[app_name]
+          # FIXME
+          t = @thread_count
+          @applications[app_name].message device_id, message, opts
+          @thread_count << t
+        else
+          Logger.error "not sending message for #{app_name.to_s} because it is invalid or has been removed"
+        end
       end
     end
   end

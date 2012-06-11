@@ -29,7 +29,7 @@ module LeadZeppelin
                    timeout: (@opts[:connection_pool_timeout] || CONNECTION_POOL_TIMEOUT)}
 
         begin
-          @gateway_connection_pool = ConnectionPool.new(cp_args) do
+          gateway_connection_pool = ConnectionPool.new(cp_args) do
             Gateway.new @ssl_context, (@opts[:gateway_opts] || {}).merge(notification_error_block: @opts[:notification_error_block],
                                                                          certificate_error_block:  @opts[:certificate_error_block],
                                                                          application_identifier:   @identifier)
@@ -38,19 +38,26 @@ module LeadZeppelin
         rescue OpenSSL::SSL::SSLError => e
           if e.message =~ /alert certificate unknown/
             Logger.warn "bad certificate for #{@identifier}, failed to connect"
-
-            if @opts[:certificate_error_block].nil?
-              Logger.warn "removing application #{@identifier} from the client due to bad certificate"
-              APNS.client.remove_application @identifier
-            else
-              @opts[:certificate_error_block].call @identifier
-            end
           end
+          
+          if e.message =~ /alert certificate expired/
+            Logger.warn "expired certificate for #{@identifier}, failed to connect"
+          end
+
+          if @opts[:certificate_error_block].nil?
+            Logger.warn "removing application #{@identifier} from the client due to bad/invalid/expired certificate"
+            APNS.client.remove_application @identifier
+          else
+            @opts[:certificate_error_block].call @identifier
+          end
+        else
+          @gateway_connection_pool = gateway_connection_pool
         end
       end
 
       def message(device_id, message, opts={})
         connect if @gateway_connection_pool.nil?
+        return nil if @gateway_connection_pool.nil?
 
         @gateway_connection_pool.with_connection do |gateway|
           gateway.write Notification.new(device_id, message, opts)
