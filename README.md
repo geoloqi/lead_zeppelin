@@ -28,8 +28,12 @@ Require the gem, set threads to throw exceptions (optional, but recommended for 
 Instantiate a new client and configure it by adding the block of code to handle error responses, and . Provide client.on\_error _before adding applications_.
 
     client = LeadZeppelin::APNS::Client.new do |c|
-      c.on_error do |error_response|
+      c.on_notification_error do |error_response|
         puts "Apple sent back an error response: #{error_response.inspect}"
+      end
+      
+      c.on_certificate_error do |app|
+        puts "Certificate error failed for #{app}"
       end
       
       # You can provide .p12 files too! p12: File.read('./yourapp.p12')

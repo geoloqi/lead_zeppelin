@@ -16,12 +16,18 @@ module LeadZeppelin
         # FIXME
         @thread_count = Queue.new
         (opts[:client_threads] || CLIENT_THREADS).times {|t| @thread_count << t}
+        
+        APNS.client = self
       end
 
       attr_accessor :applications
 
-      def on_error(&block)
-        @error_block = block
+      def on_notification_error(&block)
+        @notification_error_block = block
+      end
+
+      def on_certificate_error(&block)
+        @certificate_error_block = block
       end
 
       def poll(frequency=DEFAULT_POLL_FREQUENCY, opts={}, &block)
@@ -47,9 +53,17 @@ module LeadZeppelin
       def add_application(name, opts={})
         Logger.info "adding application \"#{name}\""
         Logger.thread 'a'
+        
+        begin
+          application = Application.new name, opts.merge(notification_error_block: @notification_error_block,
+                                                         certificate_error_block:  @certificate_error_block)
+        rescue OpenSSL::X509::CertificateError => e
+          Logger.error "received a bad certificate for #{name}, not adding application"
+        end
+
         @semaphore.synchronize do
           @applications ||= {}
-          @applications[name] = Application.new name, opts.merge(error_block: @error_block)
+          @applications[name] = application
         end
       end
 

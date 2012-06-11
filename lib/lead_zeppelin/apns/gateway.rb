@@ -23,14 +23,13 @@ module LeadZeppelin
             ssl_socket = OpenSSL::SSL::SSLSocket.new socket, @ssl_context
             
             ssl_socket.sync_close = true # when ssl_socket is closed, make sure the regular socket closes too.
+
             ssl_socket.connect
 
             # FIXME TODO CHECK FOR EOFError HERE instead of in process_error
 
-            @semaphore.synchronize do
-              @socket = socket
-              @ssl_socket = ssl_socket
-            end
+            @socket = socket
+            @ssl_socket = ssl_socket
           end
 
           Logger.debug "gateway connection established"
@@ -64,8 +63,8 @@ module LeadZeppelin
 
           reconnect
 
-          if @opts[:error_block].nil? || !@opts[:error_block].respond_to?(:call)
-            Logger.error "You have not implemented an on_error block. This could lead to your account being banned from APNS. See the APNS docs"
+          if @opts[:error_block].nil? || !@opts[:notification_error_block].respond_to?(:call)
+            Logger.warn "You have not implemented an on_notification_error block. This could lead to your account being banned from APNS. See the APNS docs"
           else
             @opts[:error_block].call(error)
           end
@@ -73,7 +72,9 @@ module LeadZeppelin
         rescue EOFError
           # FIXME put in a certificate error pre-check and perhaps an error block for handling this.
           # A better solution is the remove the application altogether from the client..
-          Logger.error "Invalid certificate for #{@opts[:application_name]}, reconnecting for now.."
+          # Sometimes this just means that the socket has disconnected. Apparently Apple does that too.
+          # 
+          Logger.info "socket has closed for #{@opts[:application_identifier]}, reconnecting"
           reconnect
         rescue IO::WaitReadable
           # No data to read, continue

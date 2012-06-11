@@ -4,10 +4,10 @@ module LeadZeppelin
       CONNECTION_POOL_SIZE = 5
       CONNECTION_POOL_TIMEOUT = 5
 
-      attr_reader :name
+      attr_reader :identifier
 
-      def initialize(name, opts={})
-        @name = name
+      def initialize(identifier, opts={})
+        @identifier = identifier
         @opts = opts
 
         @ssl_context = OpenSSL::SSL::SSLContext.new
@@ -28,8 +28,24 @@ module LeadZeppelin
         cp_args = {size:    (@opts[:connection_pool_size] || CONNECTION_POOL_SIZE),
                    timeout: (@opts[:connection_pool_timeout] || CONNECTION_POOL_TIMEOUT)}
 
-        @gateway_connection_pool = ConnectionPool.new(cp_args) do
-          Gateway.new @ssl_context, (@opts[:gateway_opts] || {}).merge(error_block: @opts[:error_block], application_name: @name)
+        begin
+          @gateway_connection_pool = ConnectionPool.new(cp_args) do
+            Gateway.new @ssl_context, (@opts[:gateway_opts] || {}).merge(notification_error_block: @opts[:notification_error_block],
+                                                                         certificate_error_block:  @opts[:certificate_error_block],
+                                                                         application_identifier:   @identifier)
+          end
+
+        rescue OpenSSL::SSL::SSLError => e
+          if e.message =~ /alert certificate unknown/
+            Logger.warn "bad certificate for #{@identifier}, failed to connect"
+
+            if @opts[:certificate_error_block].nil?
+              Logger.warn "removing application #{@identifier} from the client due to bad certificate"
+              APNS.client.remove_application @identifier
+            else
+              @opts[:certificate_error_block].call @identifier
+            end
+          end
         end
       end
 
