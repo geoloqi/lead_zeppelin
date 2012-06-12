@@ -4,14 +4,13 @@ module LeadZeppelin
       HOST = 'gateway.push.apple.com'
       PORT = 2195
       DEFAULT_TIMEOUT = 10
-      DEFAULT_SELECT_WAIT = 0.5
+      DEFAULT_SELECT_WAIT = 0.3
 
       def initialize(ssl_context, opts={})
         Logger.thread 'g'
         @semaphore = Mutex.new
         @ssl_context = ssl_context
         @opts        = opts
-
         connect
       end
 
@@ -58,7 +57,7 @@ module LeadZeppelin
           error_response = @ssl_socket.read_nonblock 6
           error = ErrorResponse.new error_response, notification
 
-          Logger.warn "error: #{error.code}, #{error.identifier.to_s}, #{error.message}"
+          Logger.warn "error: #{error.code}, #{error.identifier.inspect}, #{error.message}"
           Logger.thread 'e'
 
           reconnect

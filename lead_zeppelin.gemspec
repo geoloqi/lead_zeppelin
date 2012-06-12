@@ -16,5 +16,4 @@ Gem::Specification.new do |gem|
   gem.version       = LeadZeppelin::VERSION
   gem.add_dependency 'multi_json'
   gem.add_dependency 'json'
-  gem.add_dependency 'connection_pool'
 end

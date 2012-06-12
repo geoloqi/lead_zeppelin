@@ -1,14 +1,15 @@
 module LeadZeppelin
   module APNS
     class Application
-      CONNECTION_POOL_SIZE = 5
-      CONNECTION_POOL_TIMEOUT = 5
+      GATEWAY_POOL_SIZE = 3
 
       attr_reader :identifier
 
       def initialize(identifier, opts={})
         @identifier = identifier
         @opts = opts
+
+        @gateway_pool = GatewayPool.new opts[:gateway_pool_size] || GATEWAY_POOL_SIZE
 
         @ssl_context = OpenSSL::SSL::SSLContext.new
 
@@ -24,22 +25,18 @@ module LeadZeppelin
         end
       end
 
-      def connect
-        cp_args = {size:    (@opts[:connection_pool_size] || CONNECTION_POOL_SIZE),
-                   timeout: (@opts[:connection_pool_timeout] || CONNECTION_POOL_TIMEOUT)}
-
+      def new_gateway
         begin
-          gateway_connection_pool = ConnectionPool.new(cp_args) do
-            Gateway.new @ssl_context, (@opts[:gateway_opts] || {}).merge(notification_error_block: @opts[:notification_error_block],
-                                                                         certificate_error_block:  @opts[:certificate_error_block],
-                                                                         application_identifier:   @identifier)
-          end
+          gateway = Gateway.new @ssl_context, 
+                                (@opts[:gateway_opts] || {}).merge(notification_error_block: @opts[:notification_error_block],
+                                 certificate_error_block:  @opts[:certificate_error_block],
+                                 application_identifier:   @identifier)
 
         rescue OpenSSL::SSL::SSLError => e
           if e.message =~ /alert certificate unknown/
             Logger.warn "bad certificate for #{@identifier}, failed to connect"
           end
-          
+
           if e.message =~ /alert certificate expired/
             Logger.warn "expired certificate for #{@identifier}, failed to connect"
           end
@@ -50,20 +47,22 @@ module LeadZeppelin
           else
             @opts[:certificate_error_block].call @identifier
           end
-        else
-          @gateway_connection_pool = gateway_connection_pool
         end
+        
+        gateway
       end
 
       def message(device_id, message, opts={})
-        connect if @gateway_connection_pool.nil?
-        return nil if @gateway_connection_pool.nil?
-
-        @gateway_connection_pool.with_connection do |gateway|
-          gateway.write Notification.new(device_id, message, opts)
+        if @gateway_pool.total < @gateway_pool.max
+          @gateway_pool.total += 1
+          Logger.info "adding new gateway connection for #{@identifier}"
+          gateway = new_gateway
+        else
+          gateway = @gateway_pool.pop
         end
 
-        true
+        gateway.write Notification.new(device_id, message, opts)
+        @gateway_pool.push gateway
       end
     end
   end
