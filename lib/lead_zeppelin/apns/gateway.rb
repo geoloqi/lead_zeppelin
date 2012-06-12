@@ -24,7 +24,7 @@ module LeadZeppelin
             socket.setsockopt Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, true
 
             ssl_socket = OpenSSL::SSL::SSLSocket.new socket, @ssl_context
-            
+
             ssl_socket.sync_close = true # when ssl_socket is closed, make sure the regular socket closes too.
 
             ssl_socket.connect
@@ -76,7 +76,7 @@ module LeadZeppelin
           # FIXME put in a certificate error pre-check and perhaps an error block for handling this.
           # A better solution is the remove the application altogether from the client..
           # Sometimes this just means that the socket has disconnected. Apparently Apple does that too.
-          # 
+          #
           Logger.info "socket has closed for #{@opts[:application_identifier]}, reconnecting"
           reconnect
         rescue IO::WaitReadable
@@ -112,7 +112,7 @@ module LeadZeppelin
           reconnect
           retry
         end
-        
+
         true
       end
 
