@@ -18,7 +18,7 @@ module LeadZeppelin
         Logger.thread 's'
         begin
           timeout(@opts[:timeout] || DEFAULT_TIMEOUT) do
-            socket = TCPSocket.new((@opts[:apns_host] || HOST), (@opts[:apns_port] || PORT))
+            socket = TCPSocket.new((@opts[:host] || HOST), (@opts[:port] || PORT))
             ssl_socket = OpenSSL::SSL::SSLSocket.new socket, @ssl_context
             
             ssl_socket.sync_close = true # when ssl_socket is closed, make sure the regular socket closes too.
