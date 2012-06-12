@@ -61,8 +61,12 @@ module LeadZeppelin
           gateway = @gateway_pool.pop
         end
 
+        return false if gateway.nil?
+
         gateway.write Notification.new(device_id, message, opts)
         @gateway_pool.push gateway
+
+        true
       end
     end
   end

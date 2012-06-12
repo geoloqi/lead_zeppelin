@@ -70,12 +70,12 @@ module LeadZeppelin
       def remove_application(name)
         Logger.info "removing application \"#{name}\""
         Logger.thread 'r'
-
+        
         @semaphore.synchronize do
           deleted = @applications.delete name
-        end
 
-        Logger.warn "removing application \"#{name}\" failed! Name may be invalid." if deleted.nil?
+          Logger.warn "removing application \"#{name}\" failed! Name may be invalid." if deleted.nil?
+        end
       end
 
       def message(app_name, device_id, message, opts={})

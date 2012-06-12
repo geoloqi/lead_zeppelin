@@ -1,9 +1,11 @@
 module LeadZeppelin
   module APNS
     class Gateway
-      HOST = 'gateway.push.apple.com'
-      PORT = 2195
-      DEFAULT_TIMEOUT = 10
+      HOST         = 'gateway.push.apple.com'
+      SANDBOX_HOST = 'gateway.sandbox.push.apple.com'
+
+      PORT                = 2195
+      DEFAULT_TIMEOUT     = 10
       DEFAULT_SELECT_WAIT = 0.3
 
       def initialize(ssl_context, opts={})
@@ -18,7 +20,9 @@ module LeadZeppelin
         Logger.thread 's'
         begin
           timeout(@opts[:timeout] || DEFAULT_TIMEOUT) do
-            socket = TCPSocket.new((@opts[:host] || HOST), (@opts[:port] || PORT))
+            socket = TCPSocket.new (@opts[:host] || HOST), (@opts[:port] || PORT)
+            socket.setsockopt Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, true
+
             ssl_socket = OpenSSL::SSL::SSLSocket.new socket, @ssl_context
             
             ssl_socket.sync_close = true # when ssl_socket is closed, make sure the regular socket closes too.
