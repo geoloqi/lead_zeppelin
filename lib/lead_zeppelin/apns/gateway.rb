@@ -66,10 +66,10 @@ module LeadZeppelin
 
           reconnect
 
-          if @opts[:error_block].nil? || !@opts[:notification_error_block].respond_to?(:call)
+          if !@opts[:notification_error_block].respond_to?(:call)
             Logger.warn "You have not implemented an on_notification_error block. This could lead to your account being banned from APNS. See the APNS docs"
           else
-            @opts[:error_block].call(error)
+            @opts[:notification_error_block].call(error)
           end
 
         rescue EOFError
