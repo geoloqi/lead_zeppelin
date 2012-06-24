@@ -1,7 +1,7 @@
 module LeadZeppelin
   module APNS
     class Notification
-      attr_reader :device_token, :identifier, :expiry
+      attr_reader :device_token, :identifier, :expiry, :opts
 
       def initialize(device_token, message, opts={})
         @device_token = device_token
